@@ -1,11 +1,12 @@
 {
-  "name": "Example Plugin",
-  "author": "John Doe",
+  "name": "Hour Notifications",
+  "author": "mpcallahan",
   "flags": ["debug", "_root"],
   "api_version": 1,
+  "entrypoint": "frontend/index.tsx",
   "publish": {
-    "tags": ["template", "root"],
-    "description": "Decky example plugin.",
-    "image": "https://opengraph.githubassets.com/1/SteamDeckHomebrew/PluginLoader"
+    "tags": ["hour", "notifications"],
+    "description": "Toast the hour at the top of every hour on your Steam Deck.",
+    "image": "https://opengraph.githubassets.com/1/mpcallahan/DeckyHourNotifications"
   }
 }
