@@ -1,57 +1,37 @@
-import os
-
-# The decky plugin module is located at decky-loader/plugin
-# For easy intellisense checkout the decky-loader code repo
-# and add the `decky-loader/plugin/imports` path to `python.analysis.extraPaths` in `.vscode/settings.json`
 import decky
 import asyncio
+from datetime import datetime, timedelta
 
 class Plugin:
-    # A normal method. It can be called from the TypeScript side using @decky/api.
-    async def add(self, left: int, right: int) -> int:
-        return left + right
+    hourly_task: asyncio.Task | None = None
 
-    async def long_running(self):
-        await asyncio.sleep(15)
-        # Passing through a bunch of random data, just as an example
-        await decky.emit("timer_event", "Hello from the backend!", True, 2)
+    async def hourly_notifier(self):
+        while True:
+            now = datetime.now()
+            next_hour = (now + timedelta(hours=1)).replace(minute=0, second=0, microsecond=0)
+            await asyncio.sleep((next_hour - now).total_seconds())
+            await decky.emit("hour_notification", f"{next_hour.strftime('%-I')}:00")
 
-    # Asyncio-compatible long-running code, executed in a task when the plugin is loaded
+    def start_notifier(self):
+        if self.hourly_task is None or self.hourly_task.done():
+            self.hourly_task = asyncio.create_task(self.hourly_notifier())
+
+    def stop_notifier(self):
+        if self.hourly_task and not self.hourly_task.done():
+            self.hourly_task.cancel()
+        self.hourly_task = None
+
     async def _main(self):
         self.loop = asyncio.get_event_loop()
-        decky.logger.info("Hello World!")
+        self.start_notifier()
+        decky.add_event_listener("deck_suspend", lambda: asyncio.create_task(self.stop_notifier()))
+        decky.add_event_listener("deck_resume", lambda: asyncio.create_task(self.start_notifier()))
 
-    # Function called first during the unload process, utilize this to handle your plugin being stopped, but not
-    # completely removed
     async def _unload(self):
-        decky.logger.info("Goodnight World!")
-        pass
+        self.stop_notifier()
 
-    # Function called after `_unload` during uninstall, utilize this to clean up processes and other remnants of your
-    # plugin that may remain on the system
     async def _uninstall(self):
-        decky.logger.info("Goodbye World!")
         pass
 
-    async def start_timer(self):
-        self.loop.create_task(self.long_running())
-
-    # Migrations that should be performed before entering `_main()`.
     async def _migration(self):
-        decky.logger.info("Migrating")
-        # Here's a migration example for logs:
-        # - `~/.config/decky-template/template.log` will be migrated to `decky.decky_LOG_DIR/template.log`
-        decky.migrate_logs(os.path.join(decky.DECKY_USER_HOME,
-                                               ".config", "decky-template", "template.log"))
-        # Here's a migration example for settings:
-        # - `~/homebrew/settings/template.json` is migrated to `decky.decky_SETTINGS_DIR/template.json`
-        # - `~/.config/decky-template/` all files and directories under this root are migrated to `decky.decky_SETTINGS_DIR/`
-        decky.migrate_settings(
-            os.path.join(decky.DECKY_HOME, "settings", "template.json"),
-            os.path.join(decky.DECKY_USER_HOME, ".config", "decky-template"))
-        # Here's a migration example for runtime data:
-        # - `~/homebrew/template/` all files and directories under this root are migrated to `decky.decky_RUNTIME_DIR/`
-        # - `~/.local/share/decky-template/` all files and directories under this root are migrated to `decky.decky_RUNTIME_DIR/`
-        decky.migrate_runtime(
-            os.path.join(decky.DECKY_HOME, "template"),
-            os.path.join(decky.DECKY_USER_HOME, ".local", "share", "decky-template"))
+        pass
