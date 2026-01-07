@@ -6,7 +6,8 @@ export default definePlugin(() => {
     "hour_notification",
     (message) => {
       toaster.toast({
-        title: message
+        title: message,
+        body: ""
       });
     }
   );
