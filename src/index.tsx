@@ -1,21 +1,38 @@
-import { definePlugin, addEventListener, removeEventListener, toaster } from "@decky/api";
+import { definePlugin, toaster, callable, addEventListener, removeEventListener } from "@decky/api";
+import { staticClasses } from "@decky/ui";
+import { findModuleExport } from "@decky/ui";
 import { FaClock } from "react-icons/fa";
 
+interface SleepManager {
+  RegisterForNotifyResumeFromSuspend: (cb: () => void) => () => void;
+}
+
+const sleepManager = findModuleExport(
+  (mod) => mod.RegisterForNotifyResumeFromSuspend
+) as SleepManager | undefined;
+
+const restartNotifier = callable<[], void>("restart_notifier");
+
 export default definePlugin(() => {
-  const listener = addEventListener<[message: string]>(
+  const unregisterResume =
+    sleepManager?.RegisterForNotifyResumeFromSuspend(() => {
+      restartNotifier();
+    });
+
+  const listener = addEventListener<[hour: string]>(
     "hour_notification",
-    (message) => {
-      toaster.toast({
-        title: message,
-        body: ""
-      });
+    (hour) => {
+      toaster.toast({ title: hour, body: "" });
     }
   );
 
   return {
-    name: "Hourly Notification",
+    name: "Hourly Notifications",
+    titleView: <div className={staticClasses.Title}>Hourly Notifications</div>,
     icon: <FaClock />,
+    content: <div />,
     onDismount() {
+      unregisterResume?.();
       removeEventListener("hour_notification", listener);
     },
   };
