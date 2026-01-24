@@ -1,19 +1,16 @@
 import asyncio
-import time
+from datetime import datetime, timedelta
 import decky
 
 class Plugin:
     task = None
 
-    def seconds_until_next_hour(self):
-        now = time.time()
-        return 3600 - (int(now) % 3600)
-
     async def notifier(self):
         while True:
-            await asyncio.sleep(self.seconds_until_next_hour())
-            hour = time.localtime().tm_hour % 12 or 12
-            await decky.emit("hour_notification", str(hour))
+            now = datetime.now()
+            next_hour = (now + timedelta(hours=1)).replace(minute=0, second=0, microsecond=0)
+            await asyncio.sleep((next_hour - now).total_seconds())
+            await decky.emit("hour_notification", f"{next_hour.strftime('%-I')}:00")
 
     def stop_notifier(self):
         if self.task:
