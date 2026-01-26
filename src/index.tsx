@@ -27,8 +27,8 @@ export default definePlugin(() => {
   );
 
   return {
-    name: "Hourly Notifications",
-    titleView: <div className={staticClasses.Title}>Hourly Notifications</div>,
+    name: "Hour Notifications",
+    titleView: <div className={staticClasses.Title}>Hour Notifications</div>,
     icon: <FaClock />,
     content: <div />,
     onDismount() {
