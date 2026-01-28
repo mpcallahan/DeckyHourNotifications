@@ -7,6 +7,6 @@
   "publish": {
     "tags": ["hour", "notifications"],
     "description": "Toast the hour at the top of every hour on your Steam Deck.",
-    "image": "https://opengraph.githubassets.com/1/mpcallahan/DeckyHourNotifications"
+    "image": "https://raw.githubusercontent.com/mpcallahan/DeckyHourNotifications/main/assets/icon.png"
   }
 }
